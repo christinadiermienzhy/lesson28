@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Lesson28 async await</title>
+</head>
+<body>
+	<script type="text/javascript">
+		 async function showFilms () {
+
+		 	let response = await fetch ('https://swapi.co/api/people/');
+		 	let actors = await response.json ();
+		 	let list = actors.results;
+		 	 for (var i = 2; i <= 9; i++) {
+		 	 	let response2 = await fetch(`https://swapi.co/api/people/?page=${i}`);
+		 		let actors2 = await response2.json();
+				list = [...list, ...actors2.results];
+		 	 }
+		 	 const wikiSection = document.createElement('section');
+		 	 const selectForm = document.createElement('form');
+					selectForm.classList = 'selectForm';
+				const selectLabel = document.createElement('label');
+					selectLabel.setAttribute('for','mainSelect');
+					selectLabel.innerText = 'Please, choose a character';
+				const selectField = document.createElement('select');
+					selectField.classList = 'selectField';
+					selectField.setAttribute('id', 'mainSelect');
+				const submitBtn = document.createElement('button');
+					submitBtn.innerText = 'Search';
+					submitBtn.setAttribute('type', 'submit');
+				document.body.prepend ( wikiSection ) ;
+				
+				document.querySelector('section').prepend(selectForm);
+				document.querySelector('section').prepend(selectLabel);
+				document.querySelector(' form').prepend(selectField);
+				document.querySelector(' form').append(submitBtn);
+
+				list.forEach(item => {
+						const selectValue = document.createElement ( 'option' ) ;
+						selectValue.setAttribute ( 'value', item.name ) ;
+						selectValue.innerText = item.name;
+						document.querySelector ( 'select' ) .prepend(selectValue);
+					})
+
+				let filmsList = [];
+		 		let resultList = [];
+
+				async function findAllFilmOfActor (){
+						let response = await fetch('https://swapi.co/api/films/');
+		 				let films = await response.json();
+		 				filmsList = films.results;
+		 				filmsList.map( item => {
+		 					item.charactersListName = [];
+		 					item.characters.forEach(charact => {
+		 						async function getCharactersList(){
+		 							let response = await fetch(`${charact}`);
+		 							let charactersDetails = await response.json();
+		 							item.charactersListName.push(charactersDetails.name); 
+		 						}
+		 						getCharactersList();
+		 					})
+
+		 				})
+
+					}
+
+					findAllFilmOfActor();
+
+				submitBtn.addEventListener('click', function(event){
+					event.preventDefault();
+
+					filmsList.forEach(film => {
+						if (film.charactersListName.includes(selectField.value)){
+							resultList.push(film.title);
+						}
+					})
+					const blockAboutActor = document.createElement('div');
+						blockAboutActor.classList = (selectField.value);
+					const blockAboutActorTitle = document.createElement('h2');
+						blockAboutActorTitle.innerText = `The character ${selectField.value} was in such film(s):` ;
+					document.querySelector('section').append( blockAboutActor );
+					document.querySelector('div').append( blockAboutActorTitle );
+
+					const listOfFilms = document.createElement('ul');
+						document.querySelector('div').append(listOfFilms);
+					resultList.forEach(item => {
+						const itemOfList  = document.createElement('li');
+						itemOfList.innerText = item;
+						document.querySelector('ul:last-child').prepend(itemOfList)
+					})
+					resultList = [];
+				})
+		 }
+		 showFilms();
+		 
+	</script>
+</body>
+</html>
